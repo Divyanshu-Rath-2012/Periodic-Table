@@ -28,11 +28,11 @@ jobs:
         with:
           flutter-version: '3.22.2'
 
-      - name: Accept Licenses & Build
-        # "yes |" pipe answers "y" to all prompts automatically
+      - name: Build APK
         run: |
-          yes | sdkmanager --licenses || true
-          flet build apk --verbose --no-interactive
+          # --no-rich-output stops the terminal from hanging/freezing
+          # --verbose shows us exactly where the files go
+          flet build apk --no-rich-output --verbose
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
