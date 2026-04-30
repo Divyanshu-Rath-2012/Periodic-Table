@@ -14,9 +14,8 @@ jobs:
           
       - name: Install Flet
         run: |
-          pip install "flet[all]==0.84.0"
-          # This line forces a requirements file so the build won't hang
-          echo "flet==0.84.0" > requirements.txt
+          pip install "flet[all]==0.21.2"
+          echo "flet==0.21.2" > requirements.txt
           
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -27,13 +26,17 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.2'
+          flutter-version: '3.19.0'
 
-      - name: Accept Licenses & Build
-        # "yes |" types "y" to all prompts automatically
+      - name: Force Accept Licenses
         run: |
           yes | sdkmanager --licenses || true
-          flet build apk --verbose --no-rich-output
+          touch .flet-no-analytics # Prevents Flet from asking about data collection
+
+      - name: Build APK (Silent Mode)
+        run: |
+          # The --no-rich-output and --no-version-check are the keys to success
+          flet build apk --verbose --no-rich-output --no-version-check
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
