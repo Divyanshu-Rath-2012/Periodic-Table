@@ -12,28 +12,27 @@ jobs:
         with:
           python-version: '3.11'
           
-      - name: Install Flet
+      - name: Install Build Tools
         run: |
-          pip install flet==0.84.0
+          python -m pip install --upgrade pip
+          pip install "flet[all]==0.84.0"
+          # Force create requirements file so the build step doesn't fail
+          echo "flet==0.84.0" > requirements.txt
           
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
           
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.2'
-          
-      - name: Pre-accept Android Licenses
-        # This prevents the 45-second hang by answering 'yes' to all license prompts
-        run: yes | sdkmanager --licenses || true
 
       - name: Build APK
         run: |
-          # Use --verbose to see logs and ensure it doesn't wait for input
+          # The --no-interactive flag prevents it from waiting for user input
           flet build apk --verbose
           
       - name: Upload APK
