@@ -14,7 +14,6 @@ jobs:
           
       - name: Install Flet
         run: |
-          python -m pip install --upgrade pip
           pip install "flet[all]==0.84.0"
           echo "flet==0.84.0" > requirements.txt
           
@@ -27,13 +26,13 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.2' # Stable version for Flet 0.84.0
-          cache: true # Speeds up the build to avoid 45s hang
+          flutter-version: '3.22.2'
 
-      - name: Build APK (Non-Interactive)
+      - name: Accept Licenses & Build
+        # "yes |" pipe answers "y" to all prompts automatically
         run: |
-          # The --no-rich-output flag helps bypass terminal-based hangs
-          flet build apk --no-rich-output --verbose
+          yes | sdkmanager --licenses || true
+          flet build apk --verbose --no-interactive
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
