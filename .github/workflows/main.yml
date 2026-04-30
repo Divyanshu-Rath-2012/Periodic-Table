@@ -1,11 +1,17 @@
 name: Build APK
+
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -15,34 +21,44 @@ jobs:
       - name: Install Flet
         run: |
           pip install "flet[all]==0.84.0"
-          echo "flet==0.84.0" > requirements.txt
 
-      - name: Setup Java 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Install Android SDK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+
+          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
+          unzip tools.zip
+          mv cmdline-tools latest
+
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          # This specific version is the most stable for Flet builds
-          flutter-version: '3.19.0' 
+          flutter-version: '3.19.0'
 
-      - name: Bypassing EOFError (Auto-License)
-        run: |
-          # This command manually forces 'yes' into the Android SDK manager
-          mkdir -p $ANDROID_HOME/licenses
-          echo -e "24333f8a63b6b395014864b019a185967675f91f\n84831b9409646a918e30573bab4c9c91346d8abd\n504663220467295ee47873523e9146993a7aca24\n4938363733363435333633343339363533353435" > $ANDROID_HOME/licenses/android-sdk-license
-          yes | sdkmanager --licenses || true
+      - name: Flutter Doctor
+        run: flutter doctor
 
-      - name: Build APK (Silent Mode)
+      - name: Build APK
         run: |
-          # --no-rich-output is the most important flag to stop the hang
-          flet build apk --verbose --no-rich-output --no-version-check
+          flet build apk --no-rich-output --verbose
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: periodic-table-apk
+          name: apk
           path: build/apk/*.apk
