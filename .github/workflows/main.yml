@@ -15,6 +15,7 @@ jobs:
       - name: Install Flet
         run: |
           pip install "flet[all]==0.84.0"
+          # This line forces a requirements file so the build won't hang
           echo "flet==0.84.0" > requirements.txt
           
       - name: Setup Java 17
@@ -28,11 +29,11 @@ jobs:
         with:
           flutter-version: '3.22.2'
 
-      - name: Build APK
+      - name: Accept Licenses & Build
+        # "yes |" types "y" to all prompts automatically
         run: |
-          # --no-rich-output stops the terminal from hanging/freezing
-          # --verbose shows us exactly where the files go
-          flet build apk --no-rich-output --verbose
+          yes | sdkmanager --licenses || true
+          flet build apk --verbose --no-rich-output
           
       - name: Upload APK
         uses: actions/upload-artifact@v4
