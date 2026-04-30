@@ -6,40 +6,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          
-      - name: Install Flet
-        run: |
-          pip install "flet[all]==0.21.2"
-          echo "flet==0.21.2" > requirements.txt
-          
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
+      - run: pip install "flet[all]==0.84.0"
+      - uses: subosito/flutter-action@v2
         with:
-          distribution: 'temurin'
-          java-version: '17'
-          
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.19.0'
-
-      - name: Force Accept Licenses
+          flutter-version: '3.22.2'
+      - name: Force Silent Build
         run: |
           yes | sdkmanager --licenses || true
-          touch .flet-no-analytics # Prevents Flet from asking about data collection
-
-      - name: Build APK (Silent Mode)
-        run: |
-          # The --no-rich-output and --no-version-check are the keys to success
-          flet build apk --verbose --no-rich-output --no-version-check
-          
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+          flet build apk --verbose --no-rich-output
+      - uses: actions/upload-artifact@v4
         with:
           name: periodic-table-apk
           path: build/apk/*.apk
