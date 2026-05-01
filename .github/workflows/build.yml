@@ -1,6 +1,8 @@
 name: Build APK
 
-on: [push, workflow_dispatch]
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -18,9 +20,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Flet
+      - name: Install dependencies
         run: |
           pip install "flet[all]==0.84.0"
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -60,5 +63,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: apk
-          path: build/apk/*.apk
+          name: app-apk
+          path: |
+            build/apk/*.apk
+            build/flutter-apk/*.apk
